@@ -19,7 +19,7 @@ def gt_c2f(gt):
   f_gt[ f_gt == mx ] = 3
   return f_gt
 
-@pytest.mark.parametrize("connectivity", (4, 6, 8, 18, 26))
+@pytest.mark.parametrize("connectivity", (4, 6, 8, 26))
 @pytest.mark.parametrize("dtype", TEST_TYPES)
 def test_2d_square(dtype, connectivity):
   def test(order, ground_truth):
@@ -59,7 +59,7 @@ def test_2d_square(dtype, connectivity):
   test('C', ground_truth)
   test('F', ground_truth.T)
 
-@pytest.mark.parametrize("connectivity", (4, 6, 8, 18, 26))
+@pytest.mark.parametrize("connectivity", (4, 6, 8, 26))
 @pytest.mark.parametrize("dtype", TEST_TYPES)
 def test_2d_rectangle(dtype, connectivity):
   def test(order, ground_truth):
@@ -101,7 +101,7 @@ def test_2d_rectangle(dtype, connectivity):
   test('C', ground_truth)
   test('F', gt_c2f(ground_truth))
 
-@pytest.mark.parametrize("connectivity", (4, 6, 8, 18, 26))
+@pytest.mark.parametrize("connectivity", (4, 6, 8, 26))
 @pytest.mark.parametrize("dtype", TEST_TYPES)
 def test_2d_cross(dtype, connectivity):
   def test(order, ground_truth):
@@ -143,7 +143,7 @@ def test_2d_cross(dtype, connectivity):
   test('C', ground_truth)
   test('F', gt_c2f(ground_truth))
 
-@pytest.mark.parametrize("connectivity", (8, 18, 26))
+@pytest.mark.parametrize("connectivity", (8, 26))
 def test_2d_diagonals_8_connected(connectivity):
   input_labels = np.array([
     [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -205,7 +205,7 @@ def test_2d_diagonals_4_connected(connectivity):
   print(output_labels)
   assert np.all(output_labels == ground_truth_sauf) or np.all(output_labels == ground_truth_bbdt)
 
-@pytest.mark.parametrize("connectivity", (4, 6, 8, 18, 26))
+@pytest.mark.parametrize("connectivity", (4, 6, 8, 26))
 def test_2d_cross_with_intruder(connectivity):
   def test(order, ground_truth):
     input_labels = np.zeros( (5,5), dtype=np.uint8, order=order)
@@ -230,7 +230,7 @@ def test_2d_cross_with_intruder(connectivity):
   test("F", gt_c2f(ground_truth))
 
 @pytest.mark.parametrize("order", ('C', 'F'))
-@pytest.mark.parametrize("connectivity", (6,18,26))
+@pytest.mark.parametrize("connectivity", (6,26))
 def test_3d_all_different(order, connectivity):
   input_labels = np.arange(0, 100 * 99 * 98).astype(np.uint32) + 1
   input_labels = input_labels.reshape((100,99,98), order=order)
@@ -431,26 +431,6 @@ def test_compare_scipy_26():
   assert Ncc3d == Nscipy
   assert np.all(cc3d_labels == scipy_labels)
 
-def test_compare_scipy_18():
-  import scipy.ndimage.measurements
-
-  sx, sy, sz = 256, 256, 256
-  labels = np.random.randint(0,2, (sx,sy,sz), dtype=bool)
-
-  structure = [
-    [[0,1,0], [1,1,1], [0,1,0]],
-    [[1,1,1], [1,1,1], [1,1,1]],
-    [[0,1,0], [1,1,1], [0,1,0]]
-  ]
-
-  cc3d_labels, Ncc3d = cc3d.connected_components(labels, connectivity=18, return_N=True)
-  scipy_labels, Nscipy = scipy.ndimage.measurements.label(labels, structure=structure)
-
-  print(cc3d_labels)
-  print(scipy_labels)
-
-  assert Ncc3d == Nscipy
-  assert np.all(cc3d_labels == scipy_labels)
 
 def test_compare_scipy_6():
   import scipy.ndimage.measurements
@@ -467,7 +447,7 @@ def test_compare_scipy_6():
   assert Ncc3d == Nscipy
   assert np.all(cc3d_labels == scipy_labels)
 
-@pytest.mark.parametrize("connectivity", (6,18,26))
+@pytest.mark.parametrize("connectivity", (6,26))
 def test_return_N(connectivity):
   labels = np.zeros((10,10,10), dtype=np.uint8)
   cc3d_labels, N = cc3d.connected_components(labels, connectivity=connectivity, return_N=True)
@@ -528,20 +508,6 @@ def test_stress_upper_bound_for_binary_8(size):
     assert np.max(out) + 1 <= (256**2) // 4 + 1    
 
 @pytest.mark.parametrize("size", (255,256))
-def test_stress_upper_bound_for_binary_18(size):
-  labels = np.zeros((size,size,size), dtype=bool)
-  labels[::2,::2,::2] = True
-  labels[1::2,1::2,::2] = True
-
-  out = cc3d.connected_components(labels, connectivity=18)
-  assert np.max(out) + 1 <= (256**3) // 4 + 1
-
-  for _ in range(10):
-    labels = np.random.randint(0,2, (256,256,256), dtype=bool)
-    out = cc3d.connected_components(labels, connectivity=18)
-    assert np.max(out) + 1 <= (256**3) // 4 + 1
-
-@pytest.mark.parametrize("size", (255,256))
 def test_stress_upper_bound_for_binary_26(size):
   labels = np.zeros((size,size,size), dtype=bool)
   labels[::2,::2,::2] = True
@@ -554,7 +520,7 @@ def test_stress_upper_bound_for_binary_26(size):
     out = cc3d.connected_components(labels, connectivity=26)
     assert np.max(out) + 1 <= (256**3) // 8 + 1
 
-@pytest.mark.parametrize("connectivity", (8, 18, 26))
+@pytest.mark.parametrize("connectivity", (8, 26))
 @pytest.mark.parametrize("dtype", TEST_TYPES)
 @pytest.mark.parametrize("order", ("C", "F"))
 def test_all_zeros_3d(connectivity, dtype, order):
@@ -562,7 +528,7 @@ def test_all_zeros_3d(connectivity, dtype, order):
   out = cc3d.connected_components(labels)
   assert np.all(out == 0)
 
-@pytest.mark.parametrize("connectivity", (8, 18, 26))
+@pytest.mark.parametrize("connectivity", (8, 26))
 @pytest.mark.parametrize("dtype", TEST_TYPES)
 @pytest.mark.parametrize("order", ("C", "F"))
 @pytest.mark.parametrize("lbl", (1, 100, 7))
