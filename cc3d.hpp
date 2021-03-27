@@ -275,12 +275,12 @@ OUT* relabel(
   }
 
   N = next_label - 1;
-  // if (N < static_cast<size_t>(num_labels)) {
+  if (N < static_cast<size_t>(num_labels)) {
     // Raster Scan 2: Write final labels based on equivalences
     for (int64_t loc = 0; loc < sx * sy * sz; loc++) {
       out_labels[loc] = renumber[out_labels[loc]];
     }
-  // }
+  }
 
   delete[] renumber;
   return out_labels;
