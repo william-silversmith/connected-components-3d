@@ -253,10 +253,10 @@ OUT* relabel(
     size_t &N
   ) {
 
-  // if (num_labels <= 1) {
-  //   N = num_labels;
-  //   return out_labels;
-  // }
+  if (num_labels <= 1) {
+    N = num_labels;
+    return out_labels;
+  }
 
   OUT label;
   OUT* renumber = new OUT[num_labels + 1]();
