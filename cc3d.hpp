@@ -317,9 +317,9 @@ OUT* connected_components3d_26(
     throw std::runtime_error("Failed to allocate out_labels memory for connected components.");
   }
 
-  // if (max_labels == 0) {
-  //   return out_labels;
-  // }
+  if (max_labels == 0) {
+    return out_labels;
+  }
 
   max_labels++; // corrects Cython estimation
   max_labels = std::min(max_labels, static_cast<size_t>(voxels) + 1); // + 1L for an array with no zeros
