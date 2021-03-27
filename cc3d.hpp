@@ -253,10 +253,10 @@ OUT* relabel(
     size_t &N
   ) {
 
-  if (num_labels <= 1) {
-    N = num_labels;
-    return out_labels;
-  }
+  // if (num_labels <= 1) {
+  //   N = num_labels;
+  //   return out_labels;
+  // }
 
   OUT label;
   OUT* renumber = new OUT[num_labels + 1]();
@@ -275,12 +275,12 @@ OUT* relabel(
   }
 
   N = next_label - 1;
-  if (N < static_cast<size_t>(num_labels)) {
+  // if (N < static_cast<size_t>(num_labels)) {
     // Raster Scan 2: Write final labels based on equivalences
     for (int64_t loc = 0; loc < sx * sy * sz; loc++) {
       out_labels[loc] = renumber[out_labels[loc]];
     }
-  }
+  // }
 
   delete[] renumber;
   return out_labels;
@@ -317,9 +317,9 @@ OUT* connected_components3d_26(
     throw std::runtime_error("Failed to allocate out_labels memory for connected components.");
   }
 
-  if (max_labels == 0) {
-    return out_labels;
-  }
+  // if (max_labels == 0) {
+  //   return out_labels;
+  // }
 
   max_labels++; // corrects Cython estimation
   max_labels = std::min(max_labels, static_cast<size_t>(voxels) + 1); // + 1L for an array with no zeros
