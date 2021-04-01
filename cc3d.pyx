@@ -254,8 +254,15 @@ def connected_components(
     max_labels = voxels
   max_labels = min(max_labels, voxels)
 
-  max_labels = min(max_labels, estimate_provisional_labels(data))
+  epl = estimate_provisional_labels(data)
+  max_labels = min(max_labels, epl)
 
+  if epl == 1:
+    out_labels = data > 0
+    if return_N:
+      return (out_labels, 1)
+    return out_labels
+  
   # OpenCV made a great point that for binary images,
   # the highest number of provisional labels is 
   # 1 0  for a 4-connected that's 1/2 the size + 1 
