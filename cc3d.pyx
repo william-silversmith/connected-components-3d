@@ -58,6 +58,9 @@ cdef extern from "cc3d.hpp" namespace "cc3d":
   cdef size_t estimate_provisional_label_count[T](
     T* in_labels, int64_t sx, int64_t voxels
   )
+  cdef size_t provisional_labels_26[T](
+    T* in_labels, int64_t sx, int64_t sy, int64_t sz
+  )
 
 cdef extern from "cc3d_graphs.hpp" namespace "cc3d":
   cdef OUT* extract_voxel_connectivity_graph[T,OUT](
@@ -163,6 +166,85 @@ def estimate_provisional_labels(data):
     elif dtype in (np.uint8, np.int8, bool):
       arr_memview8u = linear_data.view(np.uint8)
       return estimate_provisional_label_count[uint8_t](&arr_memview8u[0], sx, linear_data.size)
+    else:
+      raise TypeError("Type {} not currently supported.".format(dtype))
+  finally:
+    if data.flags.owndata:
+      data.setflags(write=writable)
+
+def provisional_labels(data, int64_t connectivity=26):
+  """
+  Returns the number of provisional labels for a given 
+  volume.
+  """
+  cdef int dims = len(data.shape)
+  if dims not in (1,2,3):
+    raise DimensionError("Only 1D, 2D, and 3D arrays supported. Got: " + str(dims))
+
+  if dims == 2 and connectivity not in (4, 8, 6, 18, 26):
+    raise ValueError("Only 4, 8, and 6, 18, 26 connectivities are supported for 2D images. Got: " + str(connectivity))
+  elif dims != 2 and connectivity not in (6, 18, 26):
+    raise ValueError("Only 6, 18, and 26 connectivities are supported for 3D images. Got: " + str(connectivity))
+
+  if data.size == 0:
+    return 0
+
+  order = 'F' if data.flags['F_CONTIGUOUS'] else 'C'
+
+  while len(data.shape) < 3:
+    if order == 'C':
+      data = data[np.newaxis, ...]
+    else: # F
+      data = data[..., np.newaxis ]
+
+  if not data.flags['C_CONTIGUOUS'] and not data.flags['F_CONTIGUOUS']:
+    data = np.copy(data, order=order)
+
+  shape = list(data.shape)
+
+  if order == 'C':
+    shape.reverse()
+
+  cdef int sx = shape[0]
+  cdef int sy = shape[1]
+  cdef int sz = shape[2]
+
+  cdef uint8_t[:,:,:] arr_memview8u
+  cdef uint16_t[:,:,:] arr_memview16u
+  cdef uint32_t[:,:,:] arr_memview32u
+  cdef uint64_t[:,:,:] arr_memview64u
+
+  dtype = data.dtype
+  
+  try:
+    # We aren't going to write to the array, but some 
+    # non-modifying operations we'll perform will be blocked 
+    # by this flag, so we'll just unset it and reset it at 
+    # the end.
+    writable = data.flags.writeable
+    if data.flags.owndata:
+      data.setflags(write=1)
+
+    if dtype in (np.uint64, np.int64):
+      arr_memview64u = data.view(np.uint64)
+      return provisional_labels_26[uint64_t](
+        &arr_memview64u[0,0,0], sx, sy, sz
+      )
+    elif dtype in (np.uint32, np.int32):
+      arr_memview32u = data.view(np.uint32)
+      return provisional_labels_26[uint32_t](
+        &arr_memview32u[0,0,0], sx, sy, sz
+      )
+    elif dtype in (np.uint16, np.int16):
+      arr_memview16u = data.view(np.uint16)
+      return provisional_labels_26[uint16_t](
+        &arr_memview16u[0,0,0], sx, sy, sz
+      )
+    elif dtype in (np.uint8, np.int8, bool):
+      arr_memview8u = data.view(np.uint8)
+      return provisional_labels_26[uint8_t](
+        &arr_memview8u[0,0,0], sx, sy, sz
+      )
     else:
       raise TypeError("Type {} not currently supported.".format(dtype))
   finally:
